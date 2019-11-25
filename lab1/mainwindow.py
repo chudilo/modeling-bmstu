@@ -32,22 +32,27 @@ class RandomNumbersWidget(QWidget):
         self.globalLayout.addLayout(self.drawHandInput("hand"), 0, 2)
 
         button = QPushButton("Рассчитать")
-        #button.clicked.connect(self.buttonClicked)
+        button.clicked.connect(self.buttonCalculateClicked)
         button.setMinimumSize(100, 70)
         buttonLayout = QVBoxLayout()
         buttonLayout.setMargin(20)
         buttonLayout.addWidget(button)
 
-        self.globalLayout.addLayout(buttonLayout, 1, 2)
+        self.globalLayout.addLayout(buttonLayout, 2, 2)
+
+        self.warningLabel = QLabel("")
+        warningLayout = QVBoxLayout()
+        warningLayout.addWidget(self.warningLabel)
+        self.globalLayout.addLayout(warningLayout, 2, 1)
 
         button = QPushButton("Сгенерировать\nновые\nпоследовательности")
         button.setMinimumSize(170, 70)
-        button.clicked.connect(self.buttonClicked)
+        button.clicked.connect(self.buttonGenerateClicked)
         buttonLayout = QVBoxLayout()
         buttonLayout.setMargin(20)
         buttonLayout.addWidget(button)
 
-        self.globalLayout.addLayout(buttonLayout, 1, 0)
+        self.globalLayout.addLayout(buttonLayout, 2, 0)
 #widg = QLineEdit()7
         #widg.setMaxLength(30)
         #self.globalLayout.addWidget(widg)
@@ -56,7 +61,7 @@ class RandomNumbersWidget(QWidget):
         #self.globalLayout.setAlignment(Qt.AlignLeft)
         self.setLayout(self.globalLayout)
 
-    def buttonClicked(self):
+    def buttonGenerateClicked(self):
         self.data.refresh()
 
         for i in range(3):
@@ -65,6 +70,24 @@ class RandomNumbersWidget(QWidget):
                 self.tablesFrames['tab'][i][j].setText(str(self.data.tables['tab'][i][j]))
             self.tablesRatings['alg'][i].setText(str(self.data.ratings['alg'][i]))
             self.tablesRatings['tab'][i].setText(str(self.data.ratings['tab'][i]))
+
+    def buttonCalculateClicked(self):
+        self.data.tables['hand'] = []
+        try:
+            for i in range(10):
+                field = self.tablesFrames['hand'][i].text()
+                if field:
+                    num = int(field)
+                    self.data.tables['hand'].append(num)
+
+            self.data.ratings['hand'] = sum(self.data.tables['hand'])
+            self.tablesRatings['hand'].setText(str(self.data.ratings['hand']))
+
+            self.warningLabel.setText("")
+        except ValueError:
+            self.warningLabel.setText("Ошибка:\nНеправильный ввод чисел")
+        except Exception as e:
+            self.warningLabel.setText(e)
 
     def drawTable(self, name, dictName):
         self.tablesFrames[dictName] = list()
@@ -93,6 +116,9 @@ class RandomNumbersWidget(QWidget):
         temp.addWidget(header)
         temp.setSpacing(0)
 
+        subHeader = QLabel("Оценка\nпослед-тей:")
+        subHeader.setMaximumSize(100, 40)
+
         stat = QHBoxLayout()
         self.tablesRatings[dictName] = []
         for i in range(3):
@@ -106,6 +132,7 @@ class RandomNumbersWidget(QWidget):
         all.setMargin(20)
         all.addLayout(temp)
         all.addLayout(layout)
+        all.addWidget(subHeader)
         all.addLayout(stat)
 
         return all
@@ -128,6 +155,9 @@ class RandomNumbersWidget(QWidget):
         header.setAlignment(Qt.AlignBottom)
         temp.addWidget(header)
 
+        subHeader = QLabel("Оценка\nпослед-тей:")
+        subHeader.setMaximumSize(100, 40)
+
         percent = QLabel("%###")
         percent.setFrameShape(QFrame.WinPanel)
         percent.setFrameShadow(QFrame.Raised)
@@ -137,6 +167,7 @@ class RandomNumbersWidget(QWidget):
         all.setMargin(20)
         all.addLayout(temp)
         all.addLayout(column)
+        all.addWidget(subHeader)
         all.addWidget(percent)
 
         return all
