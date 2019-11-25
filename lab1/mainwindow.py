@@ -15,66 +15,49 @@ def asd(qwe):
 
 def func(widget):
     def wrap():
-        #print(text)
         return widget.update()
 
     return wrap
 
-# TODO: qt mvc
-# FIXME: trying
 
+# TODO: qt mvc
+# TODO: fillTablesTab function
 class Data(object):
     def __init__(self):
-        '''
-        arrTabel1 = []
-        arrTabel2 = []
-        arrTabel3 = []
+        self.__initDataFields()
 
-        algTabel1 = []
-        algTabel2 = []
-        algTabel3 = []
+    def __initDataFields(self):
+        self.tables = dict()
+        self.tables['tab'] = [[], [], []]
+        self.tables['alg'] = [[], [], []]
+        self.tables['hand'] = []
 
-        handTabel = []
-        results = []
-        '''
-        #self.alg_table_fill()
+        self.ratings = dict()
+        self.ratings['tab'] = None
+        self.ratings['alg'] = None
+        self.ratings['hand'] = None
 
-    def refresh(self):
-        self.alg_table_fill()
+    def fillTablesAlg(self, num):
+        self.tables['alg'][0] = self.getTableAlg(num, 0, 9)
+        self.tables['alg'][1] = self.getTableAlg(num, 10, 99)
+        self.tables['alg'][2] = self.getTableAlg(num, 100, 999)
 
-    def alg_table_fill(self):
-        random.seed()
-        self.one_digit_alg = [random.randint(0, 9) for i in range(10)]
-        self.two_digits_alg = [random.randint(10, 99) for i in range(10)]
-        self.three_digits_alg = [random.randint(100, 999) for i in range(10)]
+        self.ratings['alg'][0] = self.getRating(self.tables['alg'][0])
+        self.ratings['alg'][1] = self.getRating(self.tables['alg'][1])
+        self.ratings['alg'][2] = self.getRating(self.tables['alg'][2])
 
-        #table.resizeColumnsToContents()
-        self.corel_1 = fabs(self.corelation(self.one_digit_alg))
-        self.corel_2 = fabs(self.corelation(self.two_digits_alg))
-        self.corel_3 = fabs(self.corelation(self.three_digits_alg))
+    @staticmethod
+    def getTableAlg(num, leftBord, rightBord):
+        arr = [random.randint(leftBord, rightBord) for _ in range(num)]
+        return arr
 
-
-    def corelation(self, nums):
-        n = len(nums)
-        sumUU = 0
-        sumber = sum(nums)
-        sumU2 = 0
-        if n ==0:
-            return 0
-        for i in range(n):
-            numj = int(nums[(i+1) % n])
-            numi = int(nums[i])
-            sumU2 += numi * numi
-            sumUU += numi * numj
-        top = n * sumUU - sumber ** 2
-        bottom = n * sumU2 - sumber ** 2
-        if bottom == 0:
-            return 1
-
-        return top / bottom
+    @staticmethod
+    def getRating(array):
+        # TODO: This is stub, place for a function that evaluates the sequence
+        return array
 
 
-class Widget(QWidget):
+class RandomNumbersWidget(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
@@ -218,6 +201,7 @@ class Widget(QWidget):
 
         return all
 
+
 class MainWindow(QMainWindow):
     def __init__(self, widget):
         QMainWindow.__init__(self)
@@ -240,16 +224,3 @@ class MainWindow(QMainWindow):
     @Slot()
     def exit_app(self, checked):
         QApplication.quit()
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-
-    widget = Widget()
-
-    window = MainWindow(widget)
-    window.resize(800, 600)
-    window.show()
-
-    # Execute application
-    sys.exit(app.exec_())
