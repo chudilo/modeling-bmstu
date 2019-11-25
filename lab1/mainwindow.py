@@ -86,8 +86,10 @@ class RandomNumbersWidget(QWidget):
             self.warningLabel.setText("")
         except ValueError:
             self.warningLabel.setText("Ошибка:\nНеправильный ввод чисел")
+            self.tablesRatings['hand'].setText("%###")
         except Exception as e:
             self.warningLabel.setText(e)
+            self.tablesRatings['hand'].setText("%###")
 
     def drawTable(self, name, dictName):
         self.tablesFrames[dictName] = list()

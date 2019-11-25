@@ -8,6 +8,7 @@ class Data(object):
 
     def __initDataFields(self, length):
         self.length = length
+        self.file = open("numbers.txt", 'r').read().split("\n")
 
         self.tables = dict()
         self.tables['tab'] = [[], [], []]
@@ -25,17 +26,23 @@ class Data(object):
 
     def fillTablesTab(self, num):
         # TODO: fillTablesTab function
-        self.tables['tab'][0] = self.getTableAlg(num, 0, 9)
-        self.tables['tab'][1] = self.getTableAlg(num, 10, 99)
-        self.tables['tab'][2] = self.getTableAlg(num, 100, 999)
+        self.tables['tab'][0] = self.getTableTab(num, 0, 9)
+        self.tables['tab'][1] = self.getTableTab(num, 10, 99)
+        self.tables['tab'][2] = self.getTableTab(num, 100, 999)
 
         self.ratings['tab'][0] = self.getRating(self.tables['tab'][0])
         self.ratings['tab'][1] = self.getRating(self.tables['tab'][1])
         self.ratings['tab'][2] = self.getRating(self.tables['tab'][2])
 
-    @staticmethod
-    def getTableTab(num, leftBord, rightBord):
-        arr = [random.randint(leftBord, rightBord) for _ in range(num)]
+
+    def getTableTab(self, num, leftBord, rightBord):
+        column = random.randint(1, len(self.file[0].split())-1)
+        row = random.randint(0, len(self.file)-num-1)
+        arr = []
+        for i in range(num):
+            arr.append(int(self.file[row].split()[column]) % (rightBord - leftBord) + leftBord)
+            row += 1
+
         return arr
 
     def fillTablesAlg(self, num):
