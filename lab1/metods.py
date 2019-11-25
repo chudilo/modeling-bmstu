@@ -1,3 +1,62 @@
+import random
+
+
+# TODO: fillTablesTab function
+class Data(object):
+    def __init__(self, length):
+        self.__initDataFields(length)
+
+    def __initDataFields(self, length):
+        self.length = length
+
+        self.tables = dict()
+        self.tables['tab'] = [[], [], []]
+        self.tables['alg'] = [[], [], []]
+        self.tables['hand'] = []
+
+        self.ratings = dict()
+        self.ratings['tab'] = [None, None, None]
+        self.ratings['alg'] = [None, None, None]
+        self.ratings['hand'] = None
+
+    def refresh(self):
+        self.fillTablesAlg(self.length)
+        self.fillTablesTab(self.length)
+
+    def fillTablesTab(self, num):
+        # TODO: fillTablesTab function
+        self.tables['tab'][0] = self.getTableAlg(num, 0, 9)
+        self.tables['tab'][1] = self.getTableAlg(num, 10, 99)
+        self.tables['tab'][2] = self.getTableAlg(num, 100, 999)
+
+        self.ratings['tab'][0] = self.getRating(self.tables['tab'][0])
+        self.ratings['tab'][1] = self.getRating(self.tables['tab'][1])
+        self.ratings['tab'][2] = self.getRating(self.tables['tab'][2])
+
+    @staticmethod
+    def getTableTab(num, leftBord, rightBord):
+        arr = [random.randint(leftBord, rightBord) for _ in range(num)]
+        return arr
+
+    def fillTablesAlg(self, num):
+        self.tables['alg'][0] = self.getTableAlg(num, 0, 9)
+        self.tables['alg'][1] = self.getTableAlg(num, 10, 99)
+        self.tables['alg'][2] = self.getTableAlg(num, 100, 999)
+
+        self.ratings['alg'][0] = self.getRating(self.tables['alg'][0])
+        self.ratings['alg'][1] = self.getRating(self.tables['alg'][1])
+        self.ratings['alg'][2] = self.getRating(self.tables['alg'][2])
+
+    @staticmethod
+    def getTableAlg(num, leftBord, rightBord):
+        arr = [random.randint(leftBord, rightBord) for _ in range(num)]
+        return arr
+
+    @staticmethod
+    def getRating(array):
+        return 100  # TODO: This is stub, place for a function that evaluates the sequence
+
+
 def cal_comulsum(massive):
     count = len(massive)
     if count == 0:

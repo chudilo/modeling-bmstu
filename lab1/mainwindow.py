@@ -7,10 +7,7 @@ from PySide2.QtWidgets import (QFrame, QAction, QApplication, QHeaderView, QHBox
 from PySide2.QtCharts import QtCharts
 import random
 from math import fabs
-
-
-def asd(qwe):
-    pass
+from metods import Data
 
 
 def func(widget):
@@ -21,67 +18,33 @@ def func(widget):
 
 
 # TODO: qt mvc
-# TODO: fillTablesTab function
-class Data(object):
-    def __init__(self):
-        self.__initDataFields()
-
-    def __initDataFields(self):
-        self.tables = dict()
-        self.tables['tab'] = [[], [], []]
-        self.tables['alg'] = [[], [], []]
-        self.tables['hand'] = []
-
-        self.ratings = dict()
-        self.ratings['tab'] = None
-        self.ratings['alg'] = None
-        self.ratings['hand'] = None
-
-    def fillTablesAlg(self, num):
-        self.tables['alg'][0] = self.getTableAlg(num, 0, 9)
-        self.tables['alg'][1] = self.getTableAlg(num, 10, 99)
-        self.tables['alg'][2] = self.getTableAlg(num, 100, 999)
-
-        self.ratings['alg'][0] = self.getRating(self.tables['alg'][0])
-        self.ratings['alg'][1] = self.getRating(self.tables['alg'][1])
-        self.ratings['alg'][2] = self.getRating(self.tables['alg'][2])
-
-    @staticmethod
-    def getTableAlg(num, leftBord, rightBord):
-        arr = [random.randint(leftBord, rightBord) for _ in range(num)]
-        return arr
-
-    @staticmethod
-    def getRating(array):
-        # TODO: This is stub, place for a function that evaluates the sequence
-        return array
-
-
 class RandomNumbersWidget(QWidget):
     def __init__(self):
         QWidget.__init__(self)
+        self.data = Data(10)
 
-        self.arr = []
-        self.data = Data()
+        self.tablesFrames = dict()
+        self.tablesRatings = dict()
+
         self.globalLayout = QGridLayout()
-        self.globalLayout.addLayout(self.drawTable("Табличный метод"), 0, 0)
-        #self.globalLayout.addLayout(self.drawTable("Алгоритмический метод"), 0, 1)
-        self.globalLayout.addLayout(self.drawColumn(), 0 , 2)
+        self.globalLayout.addLayout(self.drawTable("Табличный метод", "tab"), 0, 0)
+        self.globalLayout.addLayout(self.drawTable("Алгоритмический метод", "alg"), 0, 1)
+        self.globalLayout.addLayout(self.drawHandInput("hand"), 0, 2)
 
         button = QPushButton("Рассчитать")
-        button.clicked.connect(self.buttonClicked)
-        button.setMinimumSize(100,70)
+        #button.clicked.connect(self.buttonClicked)
+        button.setMinimumSize(100, 70)
         buttonLayout = QVBoxLayout()
-        buttonLayout.setMargin(30)
+        buttonLayout.setMargin(20)
         buttonLayout.addWidget(button)
 
         self.globalLayout.addLayout(buttonLayout, 1, 2)
 
         button = QPushButton("Сгенерировать\nновые\nпоследовательности")
-        button.setMinimumSize(100,70)
+        button.setMinimumSize(170, 70)
         button.clicked.connect(self.buttonClicked)
         buttonLayout = QVBoxLayout()
-        buttonLayout.setMargin(30)
+        buttonLayout.setMargin(20)
         buttonLayout.addWidget(button)
 
         self.globalLayout.addLayout(buttonLayout, 1, 0)
@@ -94,110 +57,87 @@ class RandomNumbersWidget(QWidget):
         self.setLayout(self.globalLayout)
 
     def buttonClicked(self):
-            self.data.refresh()
+        self.data.refresh()
+
+        for i in range(3):
             for j in range(10):
-                self.arr[j].setText(str(self.data.one_digit_alg[j]))
-                self.arr[10 + j].setText(str(self.data.two_digits_alg[j]))
-                self.arr[20 + j].setText(str(self.data.three_digits_alg[j]))
+                self.tablesFrames['alg'][i][j].setText(str(self.data.tables['alg'][i][j]))
+                self.tablesFrames['tab'][i][j].setText(str(self.data.tables['tab'][i][j]))
+            self.tablesRatings['alg'][i].setText(str(self.data.ratings['alg'][i]))
+            self.tablesRatings['tab'][i].setText(str(self.data.ratings['tab'][i]))
 
-            self.percent[0].setText(str(self.data.corel_1))
-            self.percent[1].setText(str(self.data.corel_2))
-            self.percent[2].setText(str(self.data.corel_3))
+    def drawTable(self, name, dictName):
+        self.tablesFrames[dictName] = list()
 
-    def drawTable(self, name, arr=None):
-        if arr == None:
-            arr = str(random.randint(0,9))
+        layout = QHBoxLayout()
+        for _ in range(3):
+            row = []
+            column = QVBoxLayout()
+            for _ in range(10):
+                cell = QLabel()
+                cell.setMinimumSize(30, 25)
+                cell.setFrameShape(QFrame.WinPanel)
+                cell.setFrameShadow(QFrame.Raised)
+                row.append(cell)
+                column.addWidget(cell)
 
-        self.left = QVBoxLayout()
-        for i in range(10):
-            l = QLabel()
-            l.setMinimumSize(20,25)
-            l.setFrameShape(QFrame.WinPanel)
-            l.setFrameShadow(QFrame.Raised)
-            self.arr.append(l)
-            self.left.addWidget(l)
+            self.tablesFrames[dictName].append(row)
+            layout.addLayout(column)
 
-        self.mid = QVBoxLayout()
-        for i in range(10):
-            l = QLabel()
-            l.setMinimumSize(20,25)
-            l.setFrameShape(QFrame.WinPanel)
-            l.setFrameShadow(QFrame.Raised)
-            self.arr.append(l)
-            self.mid.addWidget(l)
-
-        self.right = QVBoxLayout()
-        for i in range(10):
-            l = QLabel()
-            l.setMinimumSize(20,25)
-            l.setFrameShape(QFrame.WinPanel)
-            l.setFrameShadow(QFrame.Raised)
-            self.arr.append(l)
-            self.right.addWidget(l)
-
-        self.layout = QHBoxLayout()
-        self.layout.setSpacing(1)
-        self.layout.addLayout(self.left)
-        self.layout.addLayout(self.mid)
-        self.layout.addLayout(self.right)
+        layout.setSpacing(1)
 
         all = QVBoxLayout()
         temp = QVBoxLayout()
-        l = QLabel(name)
-        l.setAlignment(Qt.AlignBottom)
-        temp.addWidget(l)
+        header = QLabel(name)
+        header.setAlignment(Qt.AlignBottom)
+        temp.addWidget(header)
         temp.setSpacing(0)
 
         stat = QHBoxLayout()
-        #stat.setMargin(15)
-        self.percent = []
+        self.tablesRatings[dictName] = []
         for i in range(3):
             p = QLabel("%###")
             p.setFrameShape(QFrame.WinPanel)
             p.setFrameShadow(QFrame.Raised)
             stat.addWidget(p)
-            self.percent.append(p)
+            self.tablesRatings[dictName].append(p)
 
         all.setSpacing(10)
-        all.setMargin(30)
+        all.setMargin(20)
         all.addLayout(temp)
-        all.addLayout(self.layout)
+        all.addLayout(layout)
         all.addLayout(stat)
-        #all.setAlignment(Qt.AlignTop)
 
         return all
-        #self.setLayout(self.layout1)
 
-    def drawColumn(self):
-        self.left = QVBoxLayout()
-        for i in range(10):
-            l = QLineEdit()
-            #l.setGeometry(40,20)
-            l.setMinimumSize(50,25)
-            l.setMaximumSize(200,50)
-            self.left.addWidget(l)
+    def drawHandInput(self, dictName):
+        self.tablesFrames[dictName] = []
 
-        self.left.setSpacing(1)
+        column = QVBoxLayout()
+        column.setSpacing(1)
+        for _ in range(10):
+            cell = QLineEdit()
+            cell.setMinimumSize(30, 25)
+            cell.setMaximumSize(200, 50)
+            column.addWidget(cell)
+            self.tablesFrames[dictName].append(cell)
+
         all = QVBoxLayout()
         temp = QVBoxLayout()
-        l = QLabel("Ручной ввод")
-        l.setAlignment(Qt.AlignBottom)
-        temp.addWidget(l)
-        #temp.setSpacing(1)
-
-
-        #stat.setMargin(15)
+        header = QLabel("Ручной ввод")
+        header.setAlignment(Qt.AlignBottom)
+        temp.addWidget(header)
 
         percent = QLabel("%###")
         percent.setFrameShape(QFrame.WinPanel)
         percent.setFrameShadow(QFrame.Raised)
-        #stat.addWidget(percent)
-        all.setSpacing(5)
-        all.setMargin(30)
+        self.tablesRatings[dictName] = percent
+
+        all.setSpacing(10)
+        all.setMargin(20)
         all.addLayout(temp)
-        all.addLayout(self.left)
+        all.addLayout(column)
         all.addWidget(percent)
-        #all.setAlignment(Qt.AlignTop)
 
         return all
 
@@ -206,6 +146,7 @@ class MainWindow(QMainWindow):
     def __init__(self, widget):
         QMainWindow.__init__(self)
         self.setWindowTitle("Tutorial")
+        self.resize(800, 600)
 
         # Menu
         self.menu = self.menuBar()
