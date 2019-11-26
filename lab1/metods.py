@@ -34,7 +34,6 @@ class Data(object):
         self.ratings['tab'][1] = self.getRating(self.tables['tab'][1])
         self.ratings['tab'][2] = self.getRating(self.tables['tab'][2])
 
-
     def getTableTab(self, num, leftBord, rightBord):
         column = random.randint(1, len(self.file[0].split())-1)
         row = random.randint(0, len(self.file)-num-1)
@@ -61,7 +60,26 @@ class Data(object):
 
     @staticmethod
     def getRating(array):
-        return 100  # TODO: This is stub, place for a function that evaluates the sequence
+        return Data.correlation(array)  # TODO: This is stub, place for a function that evaluates the sequence
+
+    @staticmethod
+    def correlation(nums):
+        n = len(nums)
+        sumUU = 0
+        sumber = sum(nums)
+        sumU2 = 0
+        if n == 0:
+            return 0
+        for i in range(n):
+            numj = int(nums[(i + 1) % n])
+            numi = int(nums[i])
+            sumU2 += numi * numi
+            sumUU += numi * numj
+        top = n * sumUU - sumber ** 2
+        bottom = n * sumU2 - sumber ** 2
+        if bottom == 0:
+            return 1
+        return top / bottom
 
 
 def cal_comulsum(massive):
@@ -92,6 +110,8 @@ def cal_comulsum(massive):
 
     return P
 
+
+'''
 def corelation(nums):
     n = len(nums)
     sumUU = 0
@@ -109,6 +129,8 @@ def corelation(nums):
     if bottom == 0:
         return 1
     return top / bottom
+'''
+
 
 def alg_table_fill():
     random.seed()

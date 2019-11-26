@@ -21,7 +21,7 @@ def func(widget):
 class RandomNumbersWidget(QWidget):
     def __init__(self):
         QWidget.__init__(self)
-        self.data = Data(10)
+        self.data = Data(1000)
 
         self.tablesFrames = dict()
         self.tablesRatings = dict()
@@ -68,8 +68,8 @@ class RandomNumbersWidget(QWidget):
             for j in range(10):
                 self.tablesFrames['alg'][i][j].setText(str(self.data.tables['alg'][i][j]))
                 self.tablesFrames['tab'][i][j].setText(str(self.data.tables['tab'][i][j]))
-            self.tablesRatings['alg'][i].setText(str(self.data.ratings['alg'][i]))
-            self.tablesRatings['tab'][i].setText(str(self.data.ratings['tab'][i]))
+            self.tablesRatings['alg'][i].setText("{:6.5f}".format(self.data.ratings['alg'][i]))
+            self.tablesRatings['tab'][i].setText("{:6.5f}".format(self.data.ratings['tab'][i]))
 
     def buttonCalculateClicked(self):
         self.data.tables['hand'] = []
@@ -80,8 +80,8 @@ class RandomNumbersWidget(QWidget):
                     num = int(field)
                     self.data.tables['hand'].append(num)
 
-            self.data.ratings['hand'] = sum(self.data.tables['hand'])
-            self.tablesRatings['hand'].setText(str(self.data.ratings['hand']))
+            self.data.ratings['hand'] = Data.correlation(self.data.tables['hand'])
+            self.tablesRatings['hand'].setText("{:6.5f}".format(self.data.ratings['hand']))
 
             self.warningLabel.setText("")
         except ValueError:
@@ -100,7 +100,7 @@ class RandomNumbersWidget(QWidget):
             column = QVBoxLayout()
             for _ in range(10):
                 cell = QLabel()
-                cell.setMinimumSize(30, 25)
+                cell.setMinimumSize(80, 25)
                 cell.setFrameShape(QFrame.WinPanel)
                 cell.setFrameShadow(QFrame.Raised)
                 row.append(cell)
