@@ -1,0 +1,4 @@
+numpy==1.17.4
+pyqtgraph==0.11.0.dev0+gdb483f8
+PySide2==5.13.2
+shiboken2==5.13.2
