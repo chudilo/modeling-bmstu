@@ -54,7 +54,7 @@ class Table(QWidget):
         self.buttonSize.setMaximumSize(150, 50)
         self.buttonSize.clicked.connect(self.resizeTable)
 
-        self.buttonCalculate = QPushButton("Бабах")
+        self.buttonCalculate = QPushButton("Вычислить")
         self.buttonCalculate.clicked.connect(self.solve)
         self.buttonCalculate.setMaximumSize(150, 50)
 
@@ -117,28 +117,102 @@ class Table(QWidget):
                     self.tableResults.setItem(i, j, item)
 
     def solve(self):
+        self.calculatProbabilities()
+        self.calculateStabilisationTime()
+
+    def calculatProbabilities(self):
         matrix = [[float(self.table.item(j, i).text()) for j in range(self.table.rowCount())]
                   for i in range(self.table.columnCount())]
 
         for i in range(self.table.columnCount()):
             matrix[i][i] = -sum([matrix[j][i] for j in range(self.table.columnCount())])
 
-        print(matrix)
+        #print(matrix)
         b = [0]*self.table.columnCount()
-        b[-1] = 1
+        b[0] = 1
 
-        matrix[-1] = [1 for _ in matrix[-1]]
-        print(matrix)
-        print(b)
+        matrix[0] = [1 for _ in matrix[0]]
+        #print(matrix)
+        #print(b)
 
         a = numpy.array(matrix)
         b = numpy.array(b)
         answ = list(numpy.linalg.solve(a, b))
-        print(answ)
+        #print(answ)
 
         for i in range(len(answ)):
             self.tableResults.item(i, 0).setText("{:.4f}".format(answ[i]))
 
+    def calculateStabilisationTime(self):
+        matrix = [[float(self.table.item(i, j).text()) for j in range(self.table.rowCount())]
+                  for i in range(self.table.columnCount())]
+        print(matrix)
+
+        start_probabilities = [1/len(matrix[0]) for _ in matrix[0]]
+        print(start_probabilities)
+
+        limit_probabilities = calc_limit_probabilities(matrix)
+        print(limit_probabilities)
+
+        stabilization_times = calc_stabilization_times(matrix, start_probabilities, limit_probabilities)
+        print(stabilization_times)
+
+        for i in range(len(stabilization_times)):
+            self.tableResults.item(i, 1).setText("{:.4f}".format(stabilization_times[i]))
+
+TIME_DELTA = 1e-3
+EPS = 1e-2
+
+
+def dps(matrix, probabilities):
+    n = len(matrix)
+    return [
+        TIME_DELTA * sum(
+            [
+                probabilities[j] * (-sum(matrix[i]) + matrix[i][i])
+                if i == j else
+                probabilities[j] * matrix[j][i]
+                for j in range(n)
+            ]
+        )
+        for i in range(n)
+    ]
+
+
+def calc_limit_probabilities(matrix):
+    n = len(matrix)
+    return numpy.linalg.solve(
+        [
+            [
+                -sum(matrix[i]) + matrix[i][i] if i == j else matrix[j][i]
+                for j in range(n)
+            ]
+            if i != n - 1 else [1 for j in range(n)]
+            for i in range(n)
+        ],
+        [0 if i != n - 1 else 1 for i in range(n)]
+    ).tolist()
+
+
+def calc_stabilization_times(matrix, start_probabilities, limit_probabilities):
+    n = len(matrix)
+    current_time = 0
+    current_probabilities = start_probabilities.copy()
+    stabilization_times = [0 for i in range(n)]
+    for c in range(10000000):
+        curr_dps = dps(matrix, current_probabilities)
+        for i in range(n):
+            if (
+                    not stabilization_times[i] and
+                    abs(current_probabilities[i] - limit_probabilities[i]) <= EPS and
+                    curr_dps[i] <= EPS
+            ):
+                stabilization_times[i] = current_time
+            current_probabilities[i] += curr_dps[i]
+        if all(stabilization_times):
+            break
+        current_time = round(current_time + TIME_DELTA, 6)
+    return stabilization_times
 
 class MainWindow(QMainWindow):
     def __init__(self, widget):

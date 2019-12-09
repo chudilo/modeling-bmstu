@@ -30,7 +30,7 @@ def uniformDist(x, a, b):
     elif x > b:
         return 1
     else:
-        return 1 - (b-x)/(b-a)
+        return (x-a)/(b-a)
 
 
 
@@ -62,6 +62,9 @@ class UniformGraph(QWidget):
         self.b = QPushButton("Plot")
         self.b.setMinimumSize(100, 50)
         self.b.clicked.connect(self.plot)
+
+        self.warningLabel = QLabel("")
+        self.hLayout.addWidget(self.warningLabel)
         self.hLayout.addWidget(self.b)
 
         self.mainLayout = QVBoxLayout()
@@ -85,8 +88,10 @@ class UniformGraph(QWidget):
             a = float(self.inputA.text())
             b = float(self.inputB.text())
         except Exception as e:
-            print(e)
+            self.warningLabel.setText("Incorrect input")
             return
+
+        self.warningLabel.setText("")
 
         if a > b:
             a, b = b, a
@@ -111,8 +116,6 @@ class UniformGraph(QWidget):
         self.graphDist.clear()
 
         print(X, Y)
-        #X = [1,2,3,4,5]
-        #Y = [1,2,3,4,5]
         self.graphDens.plot(X, Y, pen='r')
         self.graphDist.plot(X, Y1, pen='b')
 
@@ -136,6 +139,9 @@ class GaussGraph(QWidget):
         self.b = QPushButton("Plot")
         self.b.setMinimumSize(100, 50)
         self.b.clicked.connect(self.plot)
+
+        self.warningLabel = QLabel("")
+        self.hLayout.addWidget(self.warningLabel)
         self.hLayout.addWidget(self.b)
 
         self.mainLayout = QVBoxLayout()
@@ -159,16 +165,19 @@ class GaussGraph(QWidget):
             m = float(self.inputA.text())
             d = float(self.inputB.text())
         except Exception as e:
-            print(e)
+            self.warningLabel.setText("Incorrect input")
             return
+
+        self.warningLabel.setText("")
 
         if d <= 0:
+            self.warningLabel.setText("Incorrect input")
             return
 
-        left_border = m - d*4
-        right_border = m + d*4
+        left_border = m - d*5
+        right_border = m + d*5
 
-        steps = 1000
+        steps = 2000
         step = (right_border - left_border) / steps
         X = []
         Y = []
@@ -221,6 +230,8 @@ class MainWindow(QMainWindow):
         exit_action.setShortcut("Ctrl+Q")
         exit_action.triggered.connect(self.exit_app)
 
+        newFont = QFont("Arial", 12)
+        widget.setFont(newFont)
         self.file_menu.addAction(exit_action)
         self.setCentralWidget(widget)
 
