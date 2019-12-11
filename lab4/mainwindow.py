@@ -59,11 +59,20 @@ class ServingMachineStatistics(QWidget):
         self.deltLayout.addWidget(self.deltLabel)
         self.deltLayout.addWidget(self.deltLine)
 
+        self.probLayout = QFormLayout()
+        self.probLabel = QLabel("Probability of returning")
+        self.probLine = QLineEdit("0.1")
+        self.probLayout.addWidget(self.probLabel)
+        self.probLayout.addWidget(self.probLine)
+
+
         self.numLayout.setSpacing(10)
         self.deltLayout.setSpacing(10)
+        self.probLayout.setSpacing(10)
 
         self.hLayout.addLayout(self.numLayout)
         self.hLayout.addLayout(self.deltLayout)
+        self.hLayout.addLayout(self.probLayout)
         self.hLayout.setSpacing(30)
 
         line = QFrame()
@@ -74,10 +83,40 @@ class ServingMachineStatistics(QWidget):
         line1.setFrameShape(QFrame.HLine)
         line1.setFrameShadow(QFrame.Sunken)
 
+        self.answerLabel = QLabel("Optimal length of queue")
+        self.dtLabel = QLabel("\u0394t")
+        self.dtLine = QFrame()
+        self.dtLine.setFrameShape(QFrame.WinPanel)
+        self.dtLine.setFrameShadow(QFrame.Raised)
+        self.eventLabel = QLabel("Events")
+        self.eventLine = QFrame()
+        self.eventLine.setFrameShape(QFrame.WinPanel)
+        self.eventLine.setFrameShadow(QFrame.Raised)
+        self.answerBox = QFormLayout()
+        self.answerBox.addWidget(self.answerLabel)
+        self.answerBox.addRow(self.dtLabel, self.dtLine)
+        self.answerBox.addRow(self.eventLabel, self.eventLine)
+
+        self.button = QPushButton("Calculate")
+        self.button.setMinimumSize(100,65)
+        self.button.setMaximumSize(200, 65)
+        self.buttonLayout = QVBoxLayout()
+        self.buttonLayout.addWidget(self.button)
+        self.buttonLayout.setAlignment(Qt.AlignBottom)
+
+        self.answLayout = QHBoxLayout()
+        self.answLayout.addLayout(self.answerBox)
+        self.answLayout.addLayout(self.buttonLayout)
+        #self.answLayout.setAlignment(Qt.AlignBottom)
+
         self.mainLayout.addLayout(self.dataLayout)
         self.mainLayout.addWidget(line)
         self.mainLayout.addLayout(self.hLayout)
         self.mainLayout.addWidget(line1)
+        self.mainLayout.addLayout(self.answLayout)
+
+        self.mainLayout.setAlignment(Qt.AlignVCenter)
+        self.mainLayout.setSpacing(20)
         self.setLayout(self.mainLayout)
 
 
