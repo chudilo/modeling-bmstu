@@ -3,7 +3,9 @@ from PySide2.QtGui import QPainter, QFont, QIcon
 from PySide2.QtWidgets import (QWidget, QApplication, QMainWindow, QPushButton, QLineEdit, QLabel, QFrame, QBoxLayout,
                                QAction, QTableWidget, QFormLayout, QHBoxLayout, QVBoxLayout, QTableWidgetItem, QStyledItemDelegate)
 
+import math
 import random
+import numpy
 from copy import deepcopy
 
 class IconDelegate(QStyledItemDelegate):
@@ -85,11 +87,11 @@ class ServingMachineStatistics(QWidget):
 
         self.answerLabel = QLabel("Optimal length of queue")
         self.dtLabel = QLabel("\u0394t")
-        self.dtLine = QFrame()
+        self.dtLine = QLabel()
         self.dtLine.setFrameShape(QFrame.WinPanel)
         self.dtLine.setFrameShadow(QFrame.Raised)
         self.eventLabel = QLabel("Events")
-        self.eventLine = QFrame()
+        self.eventLine = QLabel()
         self.eventLine.setFrameShape(QFrame.WinPanel)
         self.eventLine.setFrameShadow(QFrame.Raised)
         self.answerBox = QFormLayout()
@@ -98,6 +100,7 @@ class ServingMachineStatistics(QWidget):
         self.answerBox.addRow(self.eventLabel, self.eventLine)
 
         self.button = QPushButton("Calculate")
+        self.button.clicked.connect(self.calculate)
         self.button.setMinimumSize(100,65)
         self.button.setMaximumSize(200, 65)
         self.buttonLayout = QVBoxLayout()
@@ -119,8 +122,258 @@ class ServingMachineStatistics(QWidget):
         self.mainLayout.setSpacing(20)
         self.setLayout(self.mainLayout)
 
+    def calculate(self):
+        m = self.mLine.text()
+        try:
+            m = float(m)
+            if m < 0:
+                return
+        except Exception as e:
+            print(e)
 
-        '''
+        sigma = self.sigmaLine.text()
+        try:
+            sigma = float(sigma)
+            if math.isclose(sigma, 0.0, rel_tol=1e-07, abs_tol=0.0):
+                return
+        except Exception as e:
+            print(e)
+
+        requestsCount = self.numLine.text()
+        try:
+            requestsCount = int(requestsCount)
+            if requestsCount < 0:
+                return
+
+        except Exception as e:
+            print(e)
+
+        a = self.aLine.text()
+        try:
+            a = float(a)
+            if a < 0:
+                return
+        except Exception as e:
+            print(e)
+
+        b = self.bLine.text()
+        try:
+            b = float(b)
+            if b < 0:
+                return
+        except Exception as e:
+            print(e)
+
+        dt = self.deltLine.text()
+        try:
+            dt = float(dt)
+            if dt < 0 or math.isclose(dt, 0.0, rel_tol=1e-07, abs_tol=0.0):
+                return
+        except Exception as e:
+            print(e)
+
+        pRet = self.probLine.text()
+        try:
+            pRet = float(pRet)
+            if not 0 < pRet <= 1.000000001:
+                return
+        except Exception as e:
+            print(e)
+
+        generator = Generator(m, sigma)
+        processor = Processor(a, b)
+
+        self.dtLine.setText(str(getDeltaQueue(generator, processor, requestsCount, dt, pRet)))
+        self.eventLine.setText(str(getEventsQueue(generator, processor, requestsCount, pRet)))
+
+
+class Generator(object):
+    def __init__(self, m, sigma):
+        self.__m = m
+        self.__sigma = sigma
+
+    def getWorkTime(self):
+        ret = -1
+        while ret < 0:
+            ret = (sum([random.random() for _ in range(12)]) - 6)*self.__sigma + self.__m
+            #ret = numpy.random.normal(self.__m, self.__sigma)
+        return ret
+
+
+class Processor(object):
+    def __init__(self, a, b):
+        self.__a = a
+        self.__b = b
+
+    def getWorkTime(self):
+        ret = self.__a + random.random()*(self.__b - self.__a)
+        return ret
+
+
+class RequestQueue(object):
+    def __init__(self):
+        self.l = 0
+        self.max = 0
+
+    def dec(self):
+        if self.l > 0:
+            self.l -= 1
+            return True
+        else:
+            return False
+
+    def inc(self):
+        self.l += 1
+        if self.max < self.l:
+            self.max = self.l
+
+def getDeltaQueue(generator, processor, requestsCount, dt, pRet):
+    print("START DELTA")
+    currTime = dt
+    doneCount = 1
+
+    queue = RequestQueue()
+    generatorTime = generator.getWorkTime()
+    queue.inc()
+
+    processorTime = generatorTime + processor.getWorkTime()
+    queue.dec()
+    inactionF = False
+
+    while doneCount < requestsCount:
+        if currTime > generatorTime:
+            generatorTime += generator.getWorkTime()
+            queue.inc()
+            #print("inc")
+
+        if currTime > processorTime:
+            if inactionF:
+                if queue.dec():
+                    processorTime = generatorTime + processor.getWorkTime()
+                    #print("dec")
+                    doneCount += 1
+                    inactionF = False
+            else:
+                if queue.dec():
+                    #print("dec")
+                    processorTime += processor.getWorkTime()
+                    doneCount += 1
+                else:
+                    inactionF = True
+
+
+        currTime += dt
+
+    return queue.max
+
+def getEventsQueue(generator, processor, requestsCount, pRet):
+    print("START EVENT")
+    doneCount = 1
+
+    queue = RequestQueue()
+    generatorTime = [generator.getWorkTime()]
+    queue.inc()
+
+    processorTime = [generatorTime[0] + processor.getWorkTime()]
+    queue.dec()
+    inactionF = False
+
+    returnedRequests = []
+
+    events = [generatorTime, processorTime, returnedRequests]
+
+    while doneCount < requestsCount:
+        cur = []
+        for i in range(len(events)):
+            if events[i]:
+                cur.append((events[i][0], i))
+
+        mVal = cur[0][0]
+        mIndex = cur[0][1]
+
+        for i in range(len(cur)):
+            if cur[i][0] < mVal:
+                mVal, mIndex = cur[i][0], cur[i][1]
+
+        event = events[mIndex][0]
+        doneCount += 1
+
+        if mIndex == 0:
+            events[0].append(events[0][0] + generator.getWorkTime())
+            queue.inc()
+            events[0].pop(0)
+
+        elif mIndex == 1:
+            if inactionF:
+                if queue.dec():
+                    events[1].append(events[0][0] + processor.getWorkTime())
+                    doneCount += 1
+                    inactionF = False
+                    events[1].pop(0)
+
+                    if random.random() < pRet:
+                        events[2].append(events[1][-1])
+            else:
+                if queue.dec():
+                    events[1].append(events[1][0] + processor.getWorkTime())
+                    doneCount += 1
+                    events[1].pop(0)
+
+                    if random.random() < pRet:
+                        events[2].append(events[1][-1])
+                else:
+                    inactionF = True
+                    events[1].append(events[0][-1])
+                    events[1].pop(0)
+
+        elif mIndex == 2:
+            queue.inc()
+            events[2].pop(0)
+    
+    return queue.max
+
+'''
+    
+    def event_based_modelling(self, a, b, lmbda):
+        req_generator = PoissonGenerator(lmbda)
+        req_proccessor = UniformGenerator(a, b)
+    
+        req_done_count = 0
+        t_generation = req_generator.generate()
+        t_proccessor = t_generation + req_proccessor.generate()
+    
+        while t_proccessor < self.req_count:
+            if t_generation <= t_proccessor:
+                self.add_to_queue()
+                t_generation += req_generator.generate()
+            if t_generation >= t_proccessor:
+                req_done_count += self.rem_from_queue()
+                t_proccessor += req_proccessor.generate()
+    
+        return self.queue_len_max, req_done_count, self.reenter
+    
+    def time_based_modelling(self, a, b, lmbda):
+    
+        req_generator = PoissonGenerator(lmbda)
+        req_proccessor = UniformGenerator(a, b)
+    
+        req_done_count = 0
+        t_generation = req_generator.generate()
+        t_proccessor = t_generation + req_proccessor.generate()
+    
+        t_curr = 0
+        while t_curr < self.req_count:
+            # while t_curr < 5500:
+            if t_generation <= t_curr:
+                self.add_to_queue()
+                t_generation += req_generator.generate()
+            if t_proccessor <= t_curr:
+                req_done_count += self.rem_from_queue()
+                t_proccessor += req_proccessor.generate()
+    
+            t_curr += self.dt
+        return self.queue_len_max, req_done_count, self.reenter
+
         self.layout = QHBoxLayout()
         size = 5
         self.table = QTableWidget(size, size)
