@@ -25,7 +25,7 @@ class ServingMachineStatistics(QWidget):
         self.mLabel = QLabel("\u03BC")
         self.mLine = QLineEdit("10")
         self.sigmaLabel = QLabel("\u03C3")
-        self.sigmaLine = QLineEdit("2")
+        self.sigmaLine = QLineEdit("1")
         self.genBox = QFormLayout()
         self.genBox.addWidget(self.generatorLabel)
         self.genBox.addRow(self.mLabel, self.mLine)
@@ -63,7 +63,7 @@ class ServingMachineStatistics(QWidget):
 
         self.probLayout = QFormLayout()
         self.probLabel = QLabel("Probability of returning")
-        self.probLine = QLineEdit("0.1")
+        self.probLine = QLineEdit("0")
         self.probLayout.addWidget(self.probLabel)
         self.probLayout.addWidget(self.probLine)
 
@@ -175,7 +175,7 @@ class ServingMachineStatistics(QWidget):
         pRet = self.probLine.text()
         try:
             pRet = float(pRet)
-            if not 0 < pRet <= 1.000000001:
+            if not -0.00000000001 < pRet <= 1.000000001:
                 return
         except Exception as e:
             print(e)
@@ -244,7 +244,6 @@ def getDeltaQueue(generator, processor, requestsCount, dt, pRet):
         if currTime > generatorTime:
             generatorTime += generator.getWorkTime()
             queue.inc()
-            #print("inc")
 
         if currTime > processorTime:
             if inactionF:
@@ -252,12 +251,21 @@ def getDeltaQueue(generator, processor, requestsCount, dt, pRet):
                     processorTime = generatorTime + processor.getWorkTime()
                     #print("dec")
                     doneCount += 1
+                    if random.random() < pRet:
+                        queue.inc()
+                        processorTime += processor.getWorkTime()
+                        queue.dec()
+
                     inactionF = False
             else:
                 if queue.dec():
                     #print("dec")
                     processorTime += processor.getWorkTime()
                     doneCount += 1
+                    if random.random() < pRet:
+                        queue.inc()
+                        processorTime += + processor.getWorkTime()
+                        queue.dec()
                 else:
                     inactionF = True
 
@@ -280,7 +288,8 @@ def getEventsQueue(generator, processor, requestsCount, pRet):
 
     returnedRequests = []
 
-    events = [generatorTime, processorTime, returnedRequests]
+    # Я ЗАПРОГАЛ ЭТО В 4 ЧАСА НОЧИ, ДА ЛАДНО ВАМ
+    events = [generatorTime, processorTime]
 
     while doneCount < requestsCount:
         cur = []
@@ -312,7 +321,10 @@ def getEventsQueue(generator, processor, requestsCount, pRet):
                     events[1].pop(0)
 
                     if random.random() < pRet:
-                        events[2].append(events[1][-1])
+                        queue.inc()
+                        events[1].append(events[1][0] + processor.getWorkTime())
+                        events[1].pop(0)
+                        #Здесь был костыль
             else:
                 if queue.dec():
                     events[1].append(events[1][0] + processor.getWorkTime())
@@ -320,16 +332,15 @@ def getEventsQueue(generator, processor, requestsCount, pRet):
                     events[1].pop(0)
 
                     if random.random() < pRet:
-                        events[2].append(events[1][-1])
+                        queue.inc()
+                        events[1].append(events[1][0] + processor.getWorkTime())
+                        events[1].pop(0)
                 else:
                     inactionF = True
                     events[1].append(events[0][-1])
                     events[1].pop(0)
 
-        elif mIndex == 2:
-            queue.inc()
-            events[2].pop(0)
-    
+
     return queue.max
 
 '''
