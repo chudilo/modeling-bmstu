@@ -187,7 +187,7 @@ def runModel(n, gen, op0, op1, op2, comp0, comp1):
 
         for i in range(len(computers)):
             if computers[i][0] is not None:
-                if min(computers[i]) < m:
+                if computers[i][0] < m:
                     m = computers[i][0]
                     index = i
                     event = 2
@@ -207,14 +207,26 @@ def runModel(n, gen, op0, op1, op2, comp0, comp1):
 
         elif event == 1:
             if index == 2:
-                if computers[1][-1] is None:
-                    computers[1] = []
-                    computers[1].append(operators[index] + comp1.getWorkTime())
+                t = operators[index] + comp1.getWorkTime()
+                if computers[1][0] is None:
+                    computers[1] = [t]
+                else:
+                    if computers[1][0] > t:
+                        computers[1] = [t] + computers[1]
+                    else:
+                        computers[1].append(t)
+                        computers[1].sort()
 
             else:
-                if computers[0][-1] is None:
-                    computers[0] = []
-                    computers[0].append(operators[index] + comp0.getWorkTime())
+                t = operators[index] + comp0.getWorkTime()
+                if computers[0][0] is None:
+                    computers[0] = [t]
+                else:
+                    if computers[0][0] > t:
+                        computers[0] = [t] + computers[1]
+                    else:
+                        computers[0].append(t)
+                        computers[0].sort()
 
             operators[index] = None
 
